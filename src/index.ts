@@ -1,32 +1,33 @@
+import crypto from 'crypto';
 import { initializeDatabase } from './database/init.js';
-import { LedgerService } from './database/ledgerService.js';
+import { ConsumerService } from './database/consumerService.js';
+import { PublisherService } from './database/publisherService.js';
 
 async function start() {
-    console.log('🚀 Starting Distributed Ledger Engine...');
+    console.log('🚀 Bootstrapping Microservice Orchestration Engine...');
 
-    // Provision table and rules
+    // 1. Prepare Infrastructure layers (PostgreSQL Schema & Immutability Rules)
     await initializeDatabase();
 
-    // Construct a mock billing event matching our multi-tenant requirements
-    const mockEvent = {
-        eventId: 'a63b0185-3b1a-4712-9860-91118671603a',
-        tenantId: 'tenant_enterprise_alpha',
-        aggregateId: 'sub_invoice_991',
-        eventType: 'invoice.generated',
-        payload: { amount: 1500.00, currency: 'USD', itemsCount: 4 },
+    // 2. Start background consumer background worker loops to listen for streaming traffic
+    await ConsumerService.startListening();
+
+    // 3. Construct a realistic streaming event payload mimicking your multi-tenant Python billing engine
+    const streamingEvent = {
+        eventId: crypto.randomUUID(), // Generates random UUIDv4 identifiers dynamically
+        tenantId: 'tenant_enterprise_beta',
+        aggregateId: 'customer_user_772',
+        eventType: 'metered.usage.computed',
+        payload: { cpuHours: 42.5, RAM_GB_Hours: 128 },
         version: 1,
         timestamp: new Date()
     };
 
-    try {
-        await LedgerService.append(mockEvent);
-        console.log('✏️ Successfully appended mock test event to immutable ledger.');
-
-        const events = await LedgerService.getByTenant('tenant_enterprise_alpha');
-        console.log(`📋 Verification: Retrieved ${events.length} event(s) for tenant.`);
-    } catch (err) {
-        console.log('ℹ️ Database append test finished (Entry may already exist).');
-    }
+    // Trigger broadcast simulation after a 2-second delay to give services breathing room to warm up
+    setTimeout(async () => {
+        console.log('\n--- Initiating Broadcast Simulation ---');
+        await PublisherService.publishEvent(streamingEvent);
+    }, 2000);
 }
 
 start();
