@@ -6,4 +6,8 @@ export interface BillingEvent {
     payload: Record<string, any>; // JSON payload containing billing data
     version: number;        // Optimistic concurrency control / event versioning
     timestamp: Date;        // Exact UTC time event occurred
+    metadata?: {            // New optional object for resilience tracking
+        retryCount: number;   // Current number of retry attempts executed
+        lastError?: string;   // Contextual message/stack trace of the last failure
+    };
 }
